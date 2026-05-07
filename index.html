@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎰 Mega Slots — Fortune Reels</title>
+  <meta name="description" content="Juego de tragamonedas con 3 filas y 5 columnas. Gira los carretes y gana premios.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-particles" id="particles"></div>
+
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🎰</span>
+        <h1>MEGA <span class="accent">SLOTS</span></h1>
+      </div>
+      <div class="jackpot-display" id="jackpotDisplay">
+        <span class="jackpot-label">💎 JACKPOT</span>
+        <span class="jackpot-amount" id="jackpotAmount">$50,000</span>
+      </div>
+    </header>
+
+    <!-- Balance Bar -->
+    <div class="balance-bar">
+      <div class="balance-item">
+        <span class="balance-label">Balance</span>
+        <span class="balance-value" id="balance">$1,000</span>
+      </div>
+      <div class="balance-item">
+        <span class="balance-label">Apuesta</span>
+        <div class="bet-controls">
+          <button class="bet-btn" id="betDown" aria-label="Reducir apuesta">−</button>
+          <span class="balance-value" id="betAmount">$10</span>
+          <button class="bet-btn" id="betUp" aria-label="Aumentar apuesta">+</button>
+        </div>
+      </div>
+      <div class="balance-item">
+        <span class="balance-label">Ganancia</span>
+        <span class="balance-value win-value" id="lastWin">$0</span>
+      </div>
+    </div>
+
+    <!-- Paylines indicator -->
+    <div class="paylines-bar">
+      <span>Líneas de pago: <strong>15</strong></span>
+      <span class="separator">|</span>
+      <span id="autoSpinLabel" style="display:none;">Auto: <strong id="autoSpinCount">0</strong></span>
+    </div>
+
+    <!-- Slot Machine -->
+    <div class="machine-frame">
+      <div class="machine-glow"></div>
+      <div class="reels-container" id="reelsContainer">
+        <!-- 5 reels, each with 3 visible symbols -->
+        <div class="reel" id="reel-0"><div class="reel-strip"></div></div>
+        <div class="reel" id="reel-1"><div class="reel-strip"></div></div>
+        <div class="reel" id="reel-2"><div class="reel-strip"></div></div>
+        <div class="reel" id="reel-3"><div class="reel-strip"></div></div>
+        <div class="reel" id="reel-4"><div class="reel-strip"></div></div>
+      </div>
+      <!-- Win overlay -->
+      <div class="win-overlay" id="winOverlay">
+        <div class="win-text" id="winText"></div>
+      </div>
+    </div>
+
+    <!-- Payline win highlights -->
+    <div class="win-lines-canvas">
+      <canvas id="winLinesCanvas"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="sound-toggle" id="soundToggle" title="Activar sonido">🔇</button>
+      <button class="spin-btn" id="spinBtn">
+        <span class="spin-text">GIRAR</span>
+        <span class="spin-icon">▶</span>
+      </button>
+      <button class="auto-btn" id="autoBtn" title="Auto Spin">AUTO</button>
+      <button class="max-btn" id="maxBetBtn" title="Apuesta máxima">MAX</button>
+    </div>
+
+    <!-- Audio Controls -->
+    <div class="audio-controls" id="audioControls" style="display:none;">
+      <div class="audio-control-item">
+        <label for="musicToggle">🎵 Música</label>
+        <button class="music-toggle" id="musicToggle">OFF</button>
+      </div>
+      <div class="audio-control-item">
+        <label for="volumeSlider">🔊 Volumen</label>
+        <input type="range" id="volumeSlider" min="0" max="100" value="60" class="volume-slider">
+      </div>
+    </div>
+
+    <!-- Paytable -->
+    <div class="paytable-toggle">
+      <button class="toggle-btn" id="paytableToggle">📋 Tabla de Pagos</button>
+    </div>
+    <div class="paytable" id="paytable">
+      <h3>Tabla de Pagos</h3>
+      <div class="paytable-grid" id="paytableGrid"></div>
+      <div class="paytable-info">
+        <p>🔹 3+ símbolos iguales consecutivos desde la izquierda en una línea de pago.</p>
+        <p>🔹 15 líneas de pago activas. Los pagos se multiplican por la apuesta.</p>
+        <p>🔹 🃏 Wild sustituye cualquier símbolo excepto Scatter.</p>
+        <p>🔹 ⭐ 3+ Scatters otorgan giros gratis.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>🎰 Mega Slots — Solo entretenimiento, sin dinero real.</p>
+    </footer>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
