@@ -1,44 +1,27 @@
 /* ═══════════════════════════════════════════
    MEGA SLOTS — Game Engine
-   3 Rows × 5 Columns Slot Machine
+   3 Rows × 5 Columns — 243 Ways to Win
    ═══════════════════════════════════════════ */
 
 (() => {
   'use strict';
 
   // ─── Symbol Definitions ───
+  // Symbol pays are per-way (multiplied by number of ways)
   const SYMBOLS = [
-    { id: 'wild',    emoji: '🃏', name: 'Wild',      weight: 2,  pays: [0, 0, 50, 100, 500] },
-    { id: 'diamond', emoji: '💎', name: 'Diamante',  weight: 3,  pays: [0, 0, 30, 80, 250] },
-    { id: 'seven',   emoji: '7️⃣',  name: 'Siete',     weight: 4,  pays: [0, 0, 25, 60, 200] },
-    { id: 'bell',    emoji: '🔔', name: 'Campana',   weight: 5,  pays: [0, 0, 20, 40, 150] },
-    { id: 'cherry',  emoji: '🍒', name: 'Cereza',    weight: 7,  pays: [0, 0, 15, 30, 100] },
-    { id: 'lemon',   emoji: '🍋', name: 'Limón',     weight: 8,  pays: [0, 0, 10, 20, 60] },
-    { id: 'grape',   emoji: '🍇', name: 'Uva',       weight: 8,  pays: [0, 0, 10, 20, 60] },
-    { id: 'orange',  emoji: '🍊', name: 'Naranja',   weight: 9,  pays: [0, 0, 8, 15, 40] },
-    { id: 'bar',     emoji: '🏷️', name: 'BAR',       weight: 6,  pays: [0, 0, 18, 35, 120] },
+    { id: 'wild',    emoji: '🃏', name: 'Wild',      weight: 2,  pays: [0, 0, 5, 15, 50] },
+    { id: 'diamond', emoji: '💎', name: 'Diamante',  weight: 3,  pays: [0, 0, 4, 10, 30] },
+    { id: 'seven',   emoji: '7️⃣',  name: 'Siete',     weight: 4,  pays: [0, 0, 3, 8, 25] },
+    { id: 'bell',    emoji: '🔔', name: 'Campana',   weight: 5,  pays: [0, 0, 2.5, 5, 15] },
+    { id: 'cherry',  emoji: '🍒', name: 'Cereza',    weight: 7,  pays: [0, 0, 2, 4, 12] },
+    { id: 'lemon',   emoji: '🍋', name: 'Limón',     weight: 8,  pays: [0, 0, 1.5, 3, 8] },
+    { id: 'grape',   emoji: '🍇', name: 'Uva',       weight: 8,  pays: [0, 0, 1.5, 3, 8] },
+    { id: 'orange',  emoji: '🍊', name: 'Naranja',   weight: 9,  pays: [0, 0, 1, 2, 5] },
+    { id: 'bar',     emoji: '🏷️', name: 'BAR',       weight: 6,  pays: [0, 0, 2, 4.5, 14] },
     { id: 'scatter', emoji: '⭐', name: 'Scatter',   weight: 3,  pays: [0, 0, 5, 20, 100] },
   ];
 
-  // ─── Paylines (15 lines on a 3×5 grid) ───
-  // Each payline is an array of 5 row indices (0=top, 1=mid, 2=bottom)
-  const PAYLINES = [
-    [1, 1, 1, 1, 1], // 1: middle
-    [0, 0, 0, 0, 0], // 2: top
-    [2, 2, 2, 2, 2], // 3: bottom
-    [0, 1, 2, 1, 0], // 4: V shape
-    [2, 1, 0, 1, 2], // 5: inverted V
-    [0, 0, 1, 2, 2], // 6: diagonal down
-    [2, 2, 1, 0, 0], // 7: diagonal up
-    [1, 0, 0, 0, 1], // 8: top bump
-    [1, 2, 2, 2, 1], // 9: bottom bump
-    [0, 1, 1, 1, 0], // 10: flat mid from top
-    [2, 1, 1, 1, 2], // 11: flat mid from bottom
-    [1, 0, 1, 2, 1], // 12: zigzag
-    [1, 2, 1, 0, 1], // 13: reverse zigzag
-    [0, 1, 0, 1, 0], // 14: wave top
-    [2, 1, 2, 1, 2], // 15: wave bottom
-  ];
+  // 243 Ways to Win (3^5) — no paylines needed
 
   // ─── Game State ───
   const state = {
@@ -261,29 +244,58 @@
     return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--symbol-size'));
   }
 
-  // ─── Win Evaluation ───
+  // ─── Win Evaluation (243 Ways to Win) ───
   function evaluateWins() {
     let totalWin = 0;
     const winningCells = new Set();
-    const winDetails = [];
+    let totalWinningWays = 0;
 
-    // Check each payline
-    PAYLINES.forEach((line, lineIdx) => {
-      const result = checkPayline(line);
-      if (result.count >= 3) {
-        const sym = result.symbol;
-        const payout = sym.pays[result.count - 1] * (state.bet / state.minBet);
-        totalWin += payout;
-        winDetails.push({ line: lineIdx + 1, symbol: sym, count: result.count, payout });
+    // Check each symbol for ways wins
+    const symbolsToCheck = SYMBOLS.filter(s => s.id !== 'scatter');
 
-        // Mark winning cells
-        for (let c = 0; c < result.count; c++) {
-          winningCells.add(`${line[c]}-${c}`);
+    for (const sym of symbolsToCheck) {
+      // For each reel, count how many positions match this symbol (or wild)
+      let consecutiveReels = 0;
+      const waysPerReel = [];
+      const matchingPositions = [];
+
+      for (let col = 0; col < 5; col++) {
+        let count = 0;
+        const positions = [];
+        for (let row = 0; row < 3; row++) {
+          const cellSym = state.grid[row][col];
+          if (cellSym.id === sym.id || cellSym.id === 'wild') {
+            count++;
+            positions.push(row);
+          }
+        }
+        if (count > 0) {
+          consecutiveReels++;
+          waysPerReel.push(count);
+          matchingPositions.push(positions);
+        } else {
+          break; // must be consecutive from left
         }
       }
-    });
 
-    // Check scatter (anywhere on grid)
+      if (consecutiveReels >= 3) {
+        // Ways = product of matching positions per reel
+        const ways = waysPerReel.reduce((a, b) => a * b, 1);
+        const basePay = sym.pays[consecutiveReels - 1];
+        const payout = basePay * ways * (state.bet / state.minBet);
+        totalWin += payout;
+        totalWinningWays += ways;
+
+        // Mark winning cells
+        for (let col = 0; col < consecutiveReels; col++) {
+          matchingPositions[col].forEach(row => {
+            winningCells.add(`${row}-${col}`);
+          });
+        }
+      }
+    }
+
+    // Check scatter (anywhere on grid, all 5 reels)
     let scatterCount = 0;
     const scatterCells = [];
     for (let row = 0; row < 3; row++) {
@@ -312,16 +324,16 @@
 
     // Apply winnings
     if (totalWin > 0) {
-      state.lastWin = totalWin;
-      state.balance += totalWin;
+      state.lastWin = Math.round(totalWin);
+      state.balance += state.lastWin;
 
       // Jackpot contribution
       state.jackpot += Math.floor(state.bet * 0.01);
 
       // Show win
       highlightWinningCells(winningCells);
-      showWin(totalWin, winDetails.length);
-      spawnCoins(totalWin);
+      showWin(state.lastWin, totalWinningWays);
+      spawnCoins(state.lastWin);
     }
 
     updateUI();
@@ -332,38 +344,6 @@
         if (state.autoSpin || state.freeSpins > 0) spin();
       }, totalWin > 0 ? 2000 : 600);
     }
-  }
-
-  function checkPayline(line) {
-    // Get symbols on this payline
-    const symbols = line.map((row, col) => state.grid[row][col]);
-
-    // Find first non-wild symbol
-    let baseSymbol = null;
-    for (const sym of symbols) {
-      if (sym.id !== 'wild' && sym.id !== 'scatter') {
-        baseSymbol = sym;
-        break;
-      }
-    }
-
-    // If all wilds, use wild as base
-    if (!baseSymbol) {
-      baseSymbol = SYMBOLS.find(s => s.id === 'wild');
-    }
-
-    // Count consecutive matches from left
-    let count = 0;
-    for (let c = 0; c < 5; c++) {
-      const sym = symbols[c];
-      if (sym.id === baseSymbol.id || sym.id === 'wild') {
-        count++;
-      } else {
-        break;
-      }
-    }
-
-    return { symbol: baseSymbol, count };
   }
 
   // ─── Visual Effects ───
