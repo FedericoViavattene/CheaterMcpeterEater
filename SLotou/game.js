@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
    MEGA SLOTS — Game Engine
-   3 Rows × 5 Columns — 243 Ways to Win
+   Variable Rows (4-5-5-5-4) × 5 Columns — 2,000 Ways to Win
    ═══════════════════════════════════════════ */
 
 (() => {
@@ -22,7 +22,9 @@
     { id: 'scatter', img: 'Icons/Iicon_32_17.png',  name: 'Cetro Bonus',     weight: 3,  pays: [0, 0, 5, 20, 100],  tier: 'scatter' },
   ];
 
-  // 243 Ways to Win (3^5) — no paylines needed
+  // Variable rows per reel: outer reels have 4, middle reels have 5
+  const ROWS_PER_REEL = [4, 5, 5, 5, 4];
+  // Total ways = 4 × 5 × 5 × 5 × 4 = 2,000
 
   // ─── Game State ───
   const state = {
@@ -39,7 +41,7 @@
     freeSpins: 0,
     bonusMultiplier: 1,
     bonusPending: false,
-    grid: [], // 3×5 grid: grid[row][col]
+    grid: [], // column-major: grid[col][row]
     history: [],
     soundEnabled: false,
   };
@@ -91,23 +93,24 @@
   }
 
   // ─── Build Reel Strips ───
-  // Each reel shows 3 symbols (the grid rows)
-  // We generate extra symbols above/below for animation
-  const EXTRA_SYMBOLS = 20; // symbols to "scroll through" during spin
+  // Each reel shows ROWS_PER_REEL[col] symbols
+  // We generate extra symbols above for animation
+  const EXTRA_SYMBOLS = 20;
 
   function buildReelStrip(reelIndex, finalSymbols) {
-    const reel = $(`#reel-${reelIndex} .reel-strip`);
-    reel.innerHTML = '';
-    reel.style.transition = 'none';
-    reel.style.transform = 'translateY(0)';
+    const reelEl = $(`#reel-${reelIndex}`);
+    reelEl.dataset.rows = ROWS_PER_REEL[reelIndex];
+    const strip = reelEl.querySelector('.reel-strip');
+    strip.innerHTML = '';
+    strip.style.transition = 'none';
+    strip.style.transform = 'translateY(0)';
 
-    // Random filler symbols, then the 3 final symbols
     const allSymbols = [];
     for (let i = 0; i < EXTRA_SYMBOLS; i++) {
       allSymbols.push(randomSymbol());
     }
-    // Final 3 (top, mid, bottom)
-    allSymbols.push(finalSymbols[0], finalSymbols[1], finalSymbols[2]);
+    // Push all final symbols for this reel
+    finalSymbols.forEach(sym => allSymbols.push(sym));
 
     allSymbols.forEach((sym, i) => {
       const div = document.createElement('div');
@@ -121,19 +124,19 @@
       img.className = 'symbol-img';
       img.draggable = false;
       div.appendChild(img);
-      reel.appendChild(div);
+      strip.appendChild(div);
     });
 
-    return reel;
+    return strip;
   }
 
-  // ─── Initialize Grid ───
+  // ─── Initialize Grid (column-major) ───
   function initGrid() {
     state.grid = [];
-    for (let row = 0; row < 3; row++) {
-      state.grid[row] = [];
-      for (let col = 0; col < 5; col++) {
-        state.grid[row][col] = randomSymbol();
+    for (let col = 0; col < 5; col++) {
+      state.grid[col] = [];
+      for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
+        state.grid[col][row] = randomSymbol();
       }
     }
     renderStaticGrid();
@@ -141,13 +144,15 @@
 
   function renderStaticGrid() {
     for (let col = 0; col < 5; col++) {
-      const reel = $(`#reel-${col} .reel-strip`);
-      reel.innerHTML = '';
-      reel.style.transition = 'none';
-      reel.style.transform = 'translateY(0)';
+      const reelEl = $(`#reel-${col}`);
+      reelEl.dataset.rows = ROWS_PER_REEL[col];
+      const strip = reelEl.querySelector('.reel-strip');
+      strip.innerHTML = '';
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateY(0)';
 
-      for (let row = 0; row < 3; row++) {
-        const sym = state.grid[row][col];
+      for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
+        const sym = state.grid[col][row];
         const div = document.createElement('div');
         div.className = 'symbol';
         div.dataset.symbolId = sym.id;
@@ -160,7 +165,7 @@
         img.className = 'symbol-img';
         img.draggable = false;
         div.appendChild(img);
-        reel.appendChild(div);
+        strip.appendChild(div);
       }
     }
   }
@@ -196,20 +201,19 @@
     const totalSpinDuration = 1200 + 4 * 200 + 200; // last reel duration + buffer
     AudioEngine.startReelTicks(totalSpinDuration);
 
-    // Generate new grid
+    // Generate new grid (column-major)
     const newGrid = [];
-    for (let row = 0; row < 3; row++) {
-      newGrid[row] = [];
-      for (let col = 0; col < 5; col++) {
-        newGrid[row][col] = randomSymbol();
+    for (let col = 0; col < 5; col++) {
+      newGrid[col] = [];
+      for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
+        newGrid[col][row] = randomSymbol();
       }
     }
 
     // Animate each reel with stagger
     const reelPromises = [];
     for (let col = 0; col < 5; col++) {
-      const finalSyms = [newGrid[0][col], newGrid[1][col], newGrid[2][col]];
-      reelPromises.push(animateReel(col, finalSyms, col * 150));
+      reelPromises.push(animateReel(col, newGrid[col], col * 150));
     }
 
     await Promise.all(reelPromises);
@@ -230,10 +234,11 @@
   function animateReel(colIndex, finalSymbols, delay) {
     return new Promise((resolve) => {
       setTimeout(() => {
+        const numRows = ROWS_PER_REEL[colIndex];
         const strip = buildReelStrip(colIndex, finalSymbols);
         const symbolSize = getSymbolSize();
-        const totalSymbols = EXTRA_SYMBOLS + 3;
-        const targetOffset = -(totalSymbols - 3) * symbolSize;
+        const totalSymbols = EXTRA_SYMBOLS + numRows;
+        const targetOffset = -(totalSymbols - numRows) * symbolSize;
 
         // Force reflow
         strip.offsetHeight;
@@ -281,8 +286,8 @@
       for (let col = 0; col < 5; col++) {
         let count = 0;
         const positions = [];
-        for (let row = 0; row < 3; row++) {
-          const cellSym = state.grid[row][col];
+        for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
+          const cellSym = state.grid[col][row];
           if (cellSym.id === sym.id || cellSym.id === 'wild') {
             count++;
             positions.push(row);
@@ -298,18 +303,15 @@
       }
 
       if (consecutiveReels >= 3) {
-        // Ways = product of matching positions per reel
         const ways = waysPerReel.reduce((a, b) => a * b, 1);
         const basePay = sym.pays[consecutiveReels - 1];
         let payout = basePay * ways * (state.bet / state.minBet);
-        // Apply bonus multiplier during free spins
         if (state.freeSpins > 0 || state.bonusMultiplier > 1) {
           payout *= state.bonusMultiplier;
         }
         totalWin += payout;
         totalWinningWays += ways;
 
-        // Mark winning cells
         for (let col = 0; col < consecutiveReels; col++) {
           matchingPositions[col].forEach(row => {
             winningCells.add(`${row}-${col}`);
@@ -321,9 +323,9 @@
     // Check scatter (anywhere on grid, all 5 reels)
     let scatterCount = 0;
     const scatterCells = [];
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 5; col++) {
-        if (state.grid[row][col].id === 'scatter') {
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
+        if (state.grid[col][row].id === 'scatter') {
           scatterCount++;
           scatterCells.push(`${row}-${col}`);
         }
