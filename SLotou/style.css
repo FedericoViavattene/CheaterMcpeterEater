@@ -877,6 +877,335 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   Bonus Overlay
+   ═══════════════════════════════════════════ */
+.bonus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.bonus-overlay.active {
+  display: flex;
+}
+
+.bonus-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, rgba(0, 0, 0, 0.92) 70%);
+  animation: bonusBackdropIn 0.6s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes bonusBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bonus-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  max-width: 640px;
+  width: 90%;
+}
+
+/* ── Bonus Intro (symbol animation + title) ── */
+.bonus-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bonus-symbol-anim {
+  font-size: 6rem;
+  animation: bonusSymbolEntry 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             bonusSymbolFloat 2s ease-in-out 1.2s infinite alternate;
+  filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.3));
+  transform: scale(0);
+}
+
+@keyframes bonusSymbolEntry {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3) rotate(15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes bonusSymbolFloat {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-12px) scale(1.05); }
+}
+
+.bonus-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--gold) 0%, #fff 40%, var(--gold) 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: bonusTitleIn 0.8s ease 0.5s both, shimmerText 2s linear 1.3s infinite;
+  text-shadow: none;
+  text-align: center;
+}
+
+@keyframes bonusTitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.bonus-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  animation: bonusTitleIn 0.8s ease 0.9s both;
+}
+
+/* ── Volatility Cards ── */
+.bonus-choices {
+  display: flex;
+  gap: 16px;
+  opacity: 0;
+  animation: bonusChoicesIn 0.8s ease 1.4s both;
+}
+
+@keyframes bonusChoicesIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bonus-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 22px 20px;
+  border-radius: 18px;
+  background: rgba(20, 20, 50, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  min-width: 160px;
+  backdrop-filter: blur(12px);
+}
+
+.bonus-card-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Low volatility - green theme */
+.bonus-card[data-volatility="low"] {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.bonus-card[data-volatility="low"] .bonus-card-glow {
+  background: conic-gradient(from 0deg, transparent, rgba(34, 197, 94, 0.3), transparent);
+  animation: rotateGlow 4s linear infinite;
+}
+.bonus-card[data-volatility="low"] .bonus-card-title {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+.bonus-card[data-volatility="low"] .bonus-card-multi {
+  color: var(--neon-green);
+}
+
+/* Medium volatility - purple theme */
+.bonus-card[data-volatility="medium"] {
+  border-color: rgba(168, 85, 247, 0.2);
+}
+.bonus-card[data-volatility="medium"] .bonus-card-glow {
+  background: conic-gradient(from 0deg, transparent, rgba(168, 85, 247, 0.3), transparent);
+  animation: rotateGlow 4s linear infinite;
+}
+.bonus-card[data-volatility="medium"] .bonus-card-title {
+  color: var(--neon-purple);
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+.bonus-card[data-volatility="medium"] .bonus-card-multi {
+  color: var(--neon-purple);
+}
+
+/* High volatility - red/gold theme */
+.bonus-card[data-volatility="high"] {
+  border-color: rgba(255, 77, 109, 0.2);
+}
+.bonus-card[data-volatility="high"] .bonus-card-glow {
+  background: conic-gradient(from 0deg, transparent, rgba(255, 77, 109, 0.3), transparent);
+  animation: rotateGlow 4s linear infinite;
+}
+.bonus-card[data-volatility="high"] .bonus-card-title {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+.bonus-card[data-volatility="high"] .bonus-card-multi {
+  color: var(--accent);
+}
+
+/* Card hover */
+.bonus-card:hover {
+  transform: translateY(-10px) scale(1.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.bonus-card:hover .bonus-card-glow {
+  opacity: 1;
+}
+
+/* Card selected */
+.bonus-card.selected {
+  transform: scale(1.1);
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 30px var(--gold-glow), 0 0 60px rgba(255, 215, 0, 0.2);
+  animation: bonusCardSelected 0.5s ease;
+}
+
+.bonus-card.not-selected {
+  opacity: 0.2;
+  transform: scale(0.9);
+  pointer-events: none;
+  filter: grayscale(0.8);
+}
+
+@keyframes bonusCardSelected {
+  0% { transform: scale(1.05); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1.1); }
+}
+
+.bonus-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 4px;
+  transition: transform 0.3s ease;
+}
+
+.bonus-card:hover .bonus-card-icon {
+  transform: scale(1.15);
+}
+
+.bonus-card-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+
+.bonus-card-subtitle {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: -4px;
+}
+
+.bonus-card-divider {
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  margin: 4px 0;
+}
+
+.bonus-card-spins {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.bonus-card-spins span {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+.bonus-card-multi {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 900;
+  margin-top: 4px;
+}
+
+.bonus-card-multi span {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+/* Bonus particles */
+.bonus-particle {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 501;
+  animation: bonusParticleFly 2s ease-out forwards;
+}
+
+@keyframes bonusParticleFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--bpx), var(--bpy)) scale(0);
+  }
+}
+
+/* ═══════════════════════════════════════════
    Responsive
    ═══════════════════════════════════════════ */
 @media (max-width: 550px) {
@@ -917,6 +1246,42 @@ body {
   .symbol {
     font-size: 2rem;
   }
+
+  .bonus-choices {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bonus-card {
+    min-width: 260px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 16px 20px;
+    gap: 6px 12px;
+  }
+
+  .bonus-card-icon {
+    font-size: 2rem;
+  }
+
+  .bonus-card-divider {
+    width: 100%;
+  }
+
+  .bonus-card-spins,
+  .bonus-card-multi {
+    font-size: 1.2rem;
+  }
+
+  .bonus-title {
+    font-size: 1.5rem;
+  }
+
+  .bonus-symbol-anim {
+    font-size: 4rem;
+  }
 }
 
 @media (max-width: 380px) {
@@ -926,5 +1291,15 @@ body {
 
   .app {
     padding: 12px 8px 30px;
+  }
+
+  .bonus-card {
+    min-width: 220px;
+    padding: 12px 16px;
+  }
+
+  .bonus-title {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
   }
 }

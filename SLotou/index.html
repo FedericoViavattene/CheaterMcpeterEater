@@ -74,6 +74,50 @@
       <canvas id="winLinesCanvas"></canvas>
     </div>
 
+    <!-- Bonus Overlay -->
+    <div class="bonus-overlay" id="bonusOverlay">
+      <div class="bonus-backdrop"></div>
+      <div class="bonus-content" id="bonusContent">
+        <!-- Phase 1: Symbol animation -->
+        <div class="bonus-intro" id="bonusIntro">
+          <div class="bonus-symbol-anim" id="bonusSymbolAnim">⭐</div>
+          <div class="bonus-title">¡BONUS ACTIVADO!</div>
+          <div class="bonus-subtitle">Elige tu volatilidad</div>
+        </div>
+
+        <!-- Phase 2: Volatility selection -->
+        <div class="bonus-choices" id="bonusChoices">
+          <div class="bonus-card" data-volatility="low" id="bonusCardLow">
+            <div class="bonus-card-glow"></div>
+            <div class="bonus-card-icon">🛡️</div>
+            <div class="bonus-card-title">BAJA</div>
+            <div class="bonus-card-subtitle">Volatilidad</div>
+            <div class="bonus-card-divider"></div>
+            <div class="bonus-card-spins">20 <span>Tiros Gratis</span></div>
+            <div class="bonus-card-multi">x2 <span>cada tiro</span></div>
+          </div>
+          <div class="bonus-card" data-volatility="medium" id="bonusCardMedium">
+            <div class="bonus-card-glow"></div>
+            <div class="bonus-card-icon">⚡</div>
+            <div class="bonus-card-title">MEDIA</div>
+            <div class="bonus-card-subtitle">Volatilidad</div>
+            <div class="bonus-card-divider"></div>
+            <div class="bonus-card-spins">10 <span>Tiros Gratis</span></div>
+            <div class="bonus-card-multi">x5 <span>cada tiro</span></div>
+          </div>
+          <div class="bonus-card" data-volatility="high" id="bonusCardHigh">
+            <div class="bonus-card-glow"></div>
+            <div class="bonus-card-icon">🔥</div>
+            <div class="bonus-card-title">ALTA</div>
+            <div class="bonus-card-subtitle">Volatilidad</div>
+            <div class="bonus-card-divider"></div>
+            <div class="bonus-card-spins">5 <span>Tiros Gratis</span></div>
+            <div class="bonus-card-multi">x10 <span>cada tiro</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Controls -->
     <div class="controls">
       <button class="sound-toggle" id="soundToggle" title="Activar sonido">🔇</button>

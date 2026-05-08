@@ -36,6 +36,8 @@
     autoSpin: false,
     autoSpinCount: 0,
     freeSpins: 0,
+    bonusMultiplier: 1,
+    bonusPending: false,
     grid: [], // 3×5 grid: grid[row][col]
     history: [],
     soundEnabled: false,
@@ -69,6 +71,10 @@
     audioControls: $('#audioControls'),
     musicToggle: $('#musicToggle'),
     volumeSlider: $('#volumeSlider'),
+    bonusOverlay: $('#bonusOverlay'),
+    bonusChoices: $('#bonusChoices'),
+    bonusIntro: $('#bonusIntro'),
+    bonusContent: $('#bonusContent'),
   };
 
   // ─── Weighted Random Symbol ───
@@ -282,7 +288,11 @@
         // Ways = product of matching positions per reel
         const ways = waysPerReel.reduce((a, b) => a * b, 1);
         const basePay = sym.pays[consecutiveReels - 1];
-        const payout = basePay * ways * (state.bet / state.minBet);
+        let payout = basePay * ways * (state.bet / state.minBet);
+        // Apply bonus multiplier during free spins
+        if (state.freeSpins > 0 || state.bonusMultiplier > 1) {
+          payout *= state.bonusMultiplier;
+        }
         totalWin += payout;
         totalWinningWays += ways;
 
@@ -313,10 +323,8 @@
       totalWin += payout;
       scatterCells.forEach(c => winningCells.add(c));
 
-      // Award free spins
-      const freeSpinsAwarded = scatterCount === 3 ? 8 : scatterCount === 4 ? 12 : 20;
-      state.freeSpins += freeSpinsAwarded;
-      showToast(`⭐ ¡${freeSpinsAwarded} Giros Gratis!`);
+      // Trigger bonus selection overlay
+      state.bonusPending = true;
 
       // 🔊 Free spins sound
       AudioEngine.freeSpinsAwarded();
@@ -337,6 +345,17 @@
     }
 
     updateUI();
+
+    // If bonus triggered, show the bonus overlay and pause
+    if (state.bonusPending) {
+      state.bonusPending = false;
+      const wasAutoSpin = state.autoSpin;
+      if (state.autoSpin) stopAutoSpin();
+      setTimeout(() => {
+        showBonusOverlay(wasAutoSpin);
+      }, totalWin > 0 ? 2200 : 800);
+      return;
+    }
 
     // Auto spin or free spins
     if (state.autoSpin || state.freeSpins > 0) {
@@ -471,10 +490,14 @@
         banner.className = 'free-spins-banner';
         DOM.machineFrame.parentNode.insertBefore(banner, DOM.machineFrame);
       }
-      banner.textContent = `🎁 GIROS GRATIS: ${state.freeSpins}`;
+      banner.textContent = `🎁 GIROS GRATIS: ${state.freeSpins} — x${state.bonusMultiplier} Multiplicador`;
       banner.classList.add('visible');
     } else if (banner) {
       banner.classList.remove('visible');
+      // Reset multiplier when free spins end
+      if (state.bonusMultiplier > 1) {
+        state.bonusMultiplier = 1;
+      }
     }
   }
 
@@ -607,6 +630,120 @@
       state.jackpot += Math.floor(Math.random() * 50);
       DOM.jackpotAmount.textContent = `$${state.jackpot.toLocaleString()}`;
     }, 3000);
+  }
+
+  // ─── Bonus System ───
+  function showBonusOverlay(wasAutoSpin) {
+    // Reset card states
+    $$('.bonus-card').forEach(c => {
+      c.classList.remove('selected', 'not-selected');
+    });
+
+    // Force-restart CSS animations by removing and re-adding the overlay class
+    DOM.bonusOverlay.classList.remove('active');
+    // Force reflow to reset animations
+    void DOM.bonusOverlay.offsetHeight;
+    DOM.bonusOverlay.classList.add('active');
+
+    // Re-trigger animations on children by cloning the symbol
+    const symbolEl = document.getElementById('bonusSymbolAnim');
+    const newSymbol = symbolEl.cloneNode(true);
+    symbolEl.parentNode.replaceChild(newSymbol, symbolEl);
+
+    // Spawn bonus particles
+    spawnBonusParticles();
+
+    // Play bonus sound
+    AudioEngine.freeSpinsAwarded();
+
+    // Attach click handlers
+    const cards = $$('.bonus-card');
+    const handleChoice = (e) => {
+      const card = e.currentTarget;
+      const volatility = card.dataset.volatility;
+
+      AudioEngine.buttonClick();
+
+      // Visual feedback: selected card & fade others
+      cards.forEach(c => {
+        if (c === card) {
+          c.classList.add('selected');
+        } else {
+          c.classList.add('not-selected');
+        }
+        c.removeEventListener('click', handleChoice);
+      });
+
+      // Set free spins and multiplier based on choice
+      let spins, multiplier;
+      switch (volatility) {
+        case 'low':
+          spins = 20;
+          multiplier = 2;
+          break;
+        case 'medium':
+          spins = 10;
+          multiplier = 5;
+          break;
+        case 'high':
+          spins = 5;
+          multiplier = 10;
+          break;
+      }
+
+      state.freeSpins += spins;
+      state.bonusMultiplier = multiplier;
+
+      showToast(`⭐ ¡${spins} Giros Gratis con x${multiplier}!`);
+
+      // Close overlay after a moment
+      setTimeout(() => {
+        closeBonusOverlay();
+        updateUI();
+
+        // Resume auto spin if it was active, or start free spins
+        if (wasAutoSpin) {
+          state.autoSpin = true;
+          DOM.autoBtn.classList.add('active');
+        }
+        setTimeout(() => spin(), 600);
+      }, 1500);
+    };
+
+    cards.forEach(c => c.addEventListener('click', handleChoice));
+  }
+
+  function closeBonusOverlay() {
+    DOM.bonusOverlay.classList.remove('active');
+  }
+
+  function spawnBonusParticles() {
+    const colors = ['#ffd700', '#a855f7', '#00d4ff', '#ff4d6d', '#22c55e', '#fff'];
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+
+    for (let i = 0; i < 40; i++) {
+      setTimeout(() => {
+        const p = document.createElement('div');
+        p.className = 'bonus-particle';
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const size = 3 + Math.random() * 5;
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.background = color;
+        p.style.boxShadow = `0 0 ${size * 2}px ${color}`;
+        p.style.left = `${cx}px`;
+        p.style.top = `${cy - 60}px`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 80 + Math.random() * 250;
+        p.style.setProperty('--bpx', `${Math.cos(angle) * dist}px`);
+        p.style.setProperty('--bpy', `${Math.sin(angle) * dist}px`);
+
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2000);
+      }, i * 30);
+    }
   }
 
   // ─── Init ───
