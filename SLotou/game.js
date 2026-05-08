@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   MEGA SLOTS — Game Engine
+   THE LAST SWORD — Game Engine
    Variable Rows (4-5-5-5-4) × 5 Columns — 2,000 Ways to Win
    ═══════════════════════════════════════════ */
 

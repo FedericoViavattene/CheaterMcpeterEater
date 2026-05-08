@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   MEGA SLOTS — Audio Engine
+   THE LAST SWORD — Audio Engine
    Procedural sounds via Web Audio API
    ═══════════════════════════════════════════ */
 
