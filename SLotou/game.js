@@ -7,18 +7,19 @@
   'use strict';
 
   // ─── Symbol Definitions ───
-  // Symbol pays are per-way (multiplied by number of ways)
+  // Weapon icons from Icons/ folder. Tier controls visual glow intensity.
+  // Pays are per-way (multiplied by number of ways)
   const SYMBOLS = [
-    { id: 'wild',    emoji: '🃏', name: 'Wild',      weight: 2,  pays: [0, 0, 5, 15, 50] },
-    { id: 'diamond', emoji: '💎', name: 'Diamante',  weight: 3,  pays: [0, 0, 4, 10, 30] },
-    { id: 'seven',   emoji: '7️⃣',  name: 'Siete',     weight: 4,  pays: [0, 0, 3, 8, 25] },
-    { id: 'bell',    emoji: '🔔', name: 'Campana',   weight: 5,  pays: [0, 0, 2.5, 5, 15] },
-    { id: 'cherry',  emoji: '🍒', name: 'Cereza',    weight: 7,  pays: [0, 0, 2, 4, 12] },
-    { id: 'lemon',   emoji: '🍋', name: 'Limón',     weight: 8,  pays: [0, 0, 1.5, 3, 8] },
-    { id: 'grape',   emoji: '🍇', name: 'Uva',       weight: 8,  pays: [0, 0, 1.5, 3, 8] },
-    { id: 'orange',  emoji: '🍊', name: 'Naranja',   weight: 9,  pays: [0, 0, 1, 2, 5] },
-    { id: 'bar',     emoji: '🏷️', name: 'BAR',       weight: 6,  pays: [0, 0, 2, 4.5, 14] },
-    { id: 'scatter', emoji: '⭐', name: 'Scatter',   weight: 3,  pays: [0, 0, 5, 20, 100] },
+    { id: 'wild',    img: 'Icons/icon_32_2_20.png', name: 'Wild',            weight: 2,  pays: [0, 0, 5, 15, 50],   tier: 'wild' },
+    { id: 'arcane',  img: 'Icons/icon_32_2_10.png', name: 'Espada Arcana',   weight: 3,  pays: [0, 0, 4, 10, 30],   tier: 'premium' },
+    { id: 'ruby',    img: 'Icons/Iicon_32_10.png',  name: 'Hoja Rubí',       weight: 4,  pays: [0, 0, 3, 8, 25],    tier: 'premium' },
+    { id: 'inferno', img: 'Icons/Iicon_32_16.png',  name: 'Filo Ígneo',      weight: 5,  pays: [0, 0, 2.5, 5, 15],  tier: 'high' },
+    { id: 'jade',    img: 'Icons/Iicon_32_09.png',  name: 'Jade Cortante',   weight: 7,  pays: [0, 0, 2, 4, 12],    tier: 'high' },
+    { id: 'flame',   img: 'Icons/icon_32_2_05.png', name: 'Acero Volcán',    weight: 8,  pays: [0, 0, 1.5, 3, 8],   tier: 'mid' },
+    { id: 'frost',   img: 'Icons/Iicon_32_30.png',  name: 'Hoja Glacial',    weight: 8,  pays: [0, 0, 1.5, 3, 8],   tier: 'mid' },
+    { id: 'noble',   img: 'Icons/Iicon_32_04.png',  name: 'Espada Noble',    weight: 9,  pays: [0, 0, 1, 2, 5],     tier: 'low' },
+    { id: 'steel',   img: 'Icons/Iicon_32_01.png',  name: 'Acero Forjado',   weight: 6,  pays: [0, 0, 2, 4.5, 14],  tier: 'low' },
+    { id: 'scatter', img: 'Icons/Iicon_32_17.png',  name: 'Cetro Bonus',     weight: 3,  pays: [0, 0, 5, 20, 100],  tier: 'scatter' },
   ];
 
   // 243 Ways to Win (3^5) — no paylines needed
@@ -111,9 +112,15 @@
     allSymbols.forEach((sym, i) => {
       const div = document.createElement('div');
       div.className = 'symbol';
-      div.textContent = sym.emoji;
       div.dataset.symbolId = sym.id;
+      div.dataset.tier = sym.tier;
       div.dataset.index = i;
+      const img = document.createElement('img');
+      img.src = sym.img;
+      img.alt = sym.name;
+      img.className = 'symbol-img';
+      img.draggable = false;
+      div.appendChild(img);
       reel.appendChild(div);
     });
 
@@ -143,10 +150,16 @@
         const sym = state.grid[row][col];
         const div = document.createElement('div');
         div.className = 'symbol';
-        div.textContent = sym.emoji;
         div.dataset.symbolId = sym.id;
+        div.dataset.tier = sym.tier;
         div.dataset.row = row;
         div.dataset.col = col;
+        const img = document.createElement('img');
+        img.src = sym.img;
+        img.alt = sym.name;
+        img.className = 'symbol-img';
+        img.draggable = false;
+        div.appendChild(img);
         reel.appendChild(div);
       }
     }
@@ -594,7 +607,7 @@
       const item = document.createElement('div');
       item.className = 'pay-item';
       item.innerHTML = `
-        <span class="pay-symbol">${sym.emoji}</span>
+        <span class="pay-symbol"><img src="${sym.img}" alt="${sym.name}" draggable="false"></span>
         <span class="pay-name">${sym.name}</span>
         <span class="pay-values">
           ×3: ${sym.pays[2]}x<br>
