@@ -209,34 +209,68 @@ body {
   background-clip: text;
 }
 
-.jackpot-display {
+.jackpot-tiers {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.jackpot-tier {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.jackpot-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--gold);
-  text-shadow: 0 0 10px var(--gold-glow);
-}
-
-.jackpot-amount {
+.tier-label {
   font-family: 'Orbitron', monospace;
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--gold);
-  text-shadow: 0 0 20px var(--gold-glow), 0 0 40px rgba(255, 215, 0, 0.15);
-  animation: jackpotPulse 1.5s ease-in-out infinite;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-@keyframes jackpotPulse {
-  0%, 100% { text-shadow: 0 0 20px var(--gold-glow); }
-  50% { text-shadow: 0 0 30px var(--gold-glow), 0 0 60px rgba(255, 215, 0, 0.2); }
+.tier-amount {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+/* Mini — bronze */
+.tier-mini .tier-label { color: #cd7f32; }
+.tier-mini .tier-amount { color: #cd7f32; text-shadow: 0 0 6px rgba(205, 127, 50, 0.3); }
+
+/* Minor — silver */
+.tier-minor .tier-label { color: #b0c4de; }
+.tier-minor .tier-amount { color: #b0c4de; text-shadow: 0 0 6px rgba(176, 196, 222, 0.3); }
+
+/* Major — gold */
+.tier-major .tier-label { color: var(--gold); }
+.tier-major .tier-amount { color: var(--gold); text-shadow: 0 0 8px var(--gold-glow); }
+.tier-major { border-color: rgba(255, 215, 0, 0.12); }
+
+/* Grand — diamond/prismatic */
+.tier-grand .tier-label {
+  background: linear-gradient(90deg, #00d4ff, #a855f7, #ff4d6d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.tier-grand .tier-amount {
+  background: linear-gradient(90deg, #00d4ff, #a855f7, #ff4d6d);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerText 3s linear infinite;
+  font-size: 0.85rem;
+}
+.tier-grand {
+  border-color: rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.06);
 }
 
 /* ═══════════════════════════════════════════
@@ -1338,8 +1372,24 @@ body {
     font-size: 1.6rem;
   }
 
-  .jackpot-amount {
-    font-size: 1rem;
+  .jackpot-tiers {
+    gap: 4px;
+  }
+
+  .jackpot-tier {
+    padding: 3px 6px;
+  }
+
+  .tier-label {
+    font-size: 0.4rem;
+  }
+
+  .tier-amount {
+    font-size: 0.6rem;
+  }
+
+  .tier-grand .tier-amount {
+    font-size: 0.65rem;
   }
 
   .balance-bar {

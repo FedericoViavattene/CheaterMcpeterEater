@@ -34,7 +34,6 @@
     minBet: 10,
     maxBet: 500,
     lastWin: 0,
-    jackpot: 50000,
     spinning: false,
     autoSpin: false,
     autoSpinCount: 0,
@@ -60,6 +59,10 @@
     maxBetBtn: $('#maxBetBtn'),
     betUp: $('#betUp'),
     betDown: $('#betDown'),
+    jpMini: $('#jpMini'),
+    jpMinor: $('#jpMinor'),
+    jpMajor: $('#jpMajor'),
+    jpGrand: $('#jpGrand'),
     reelsContainer: $('#reelsContainer'),
     winOverlay: $('#winOverlay'),
     winText: $('#winText'),
@@ -362,8 +365,7 @@
       state.lastWin = Math.round(totalWin);
       state.balance += state.lastWin;
 
-      // Jackpot contribution
-      state.jackpot += Math.floor(state.bet * 0.01);
+      // Jackpot contribution removed (fixed tiers based on bet)
 
       // Show win
       highlightWinningCells(winningCells);
@@ -507,7 +509,12 @@
     DOM.balance.textContent = `$${state.balance.toLocaleString()}`;
     DOM.betAmount.textContent = `$${state.bet.toLocaleString()}`;
     DOM.lastWin.textContent = `$${state.lastWin.toLocaleString()}`;
-    DOM.jackpotAmount.textContent = `$${state.jackpot.toLocaleString()}`;
+
+    // Jackpot tiers (based on current bet)
+    DOM.jpMini.textContent = `$${(state.bet * 10).toLocaleString()}`;
+    DOM.jpMinor.textContent = `$${(state.bet * 20).toLocaleString()}`;
+    DOM.jpMajor.textContent = `$${(state.bet * 50).toLocaleString()}`;
+    DOM.jpGrand.textContent = `$${(state.bet * 100).toLocaleString()}`;
 
     // Free spins indicator
     let banner = $('.free-spins-banner');
@@ -651,13 +658,7 @@
     }
   }
 
-  // ─── Jackpot Animation ───
-  function animateJackpot() {
-    setInterval(() => {
-      state.jackpot += Math.floor(Math.random() * 50);
-      DOM.jackpotAmount.textContent = `$${state.jackpot.toLocaleString()}`;
-    }, 3000);
-  }
+
 
   // ─── Bonus System ───
   function showBonusOverlay(wasAutoSpin) {
@@ -779,7 +780,6 @@
     buildPaytable();
     initGrid();
     updateUI();
-    animateJackpot();
     initAudioControls();
   }
 
