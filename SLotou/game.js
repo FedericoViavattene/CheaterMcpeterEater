@@ -320,29 +320,41 @@
       }
     }
 
-    // Check scatter (anywhere on grid, all 5 reels)
-    let scatterCount = 0;
+    // Check scatter — must appear in 3+ DIFFERENT columns (1 per col is enough)
+    let scatterColumns = 0;
     const scatterCells = [];
     for (let col = 0; col < 5; col++) {
+      let foundInCol = false;
       for (let row = 0; row < ROWS_PER_REEL[col]; row++) {
         if (state.grid[col][row].id === 'scatter') {
-          scatterCount++;
           scatterCells.push(`${row}-${col}`);
+          foundInCol = true;
         }
       }
+      if (foundInCol) scatterColumns++;
     }
 
-    if (scatterCount >= 3) {
+    if (scatterColumns >= 3) {
       const scatterSym = SYMBOLS.find(s => s.id === 'scatter');
-      const payout = scatterSym.pays[scatterCount - 1] * state.bet;
+      const payout = scatterSym.pays[scatterColumns - 1] * state.bet;
       totalWin += payout;
       scatterCells.forEach(c => winningCells.add(c));
 
-      // Trigger bonus selection overlay
-      state.bonusPending = true;
-
       // 🔊 Free spins sound
       AudioEngine.freeSpinsAwarded();
+
+      // Check if we're already in free spins (retrigger)
+      const inFreeSpins = state.freeSpins > 0 || state.bonusMultiplier > 1;
+
+      if (inFreeSpins) {
+        // RETRIGGER: add spins equal to number of scatter columns, no overlay
+        const extraSpins = scatterColumns;
+        state.freeSpins += extraSpins;
+        showToast(`🔄 ¡Retrigger! +${extraSpins} Giros Gratis`);
+      } else {
+        // INITIAL TRIGGER: show bonus volatility selection
+        state.bonusPending = true;
+      }
     }
 
     // Apply winnings
@@ -361,7 +373,7 @@
 
     updateUI();
 
-    // If bonus triggered, show the bonus overlay and pause
+    // If bonus triggered (initial), show the bonus overlay and pause
     if (state.bonusPending) {
       state.bonusPending = false;
       const wasAutoSpin = state.autoSpin;
